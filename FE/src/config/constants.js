@@ -1,2 +1,4 @@
 export const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS;
-export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+/** Nếu thiếu .env, axios sẽ gọi nhầm lên Vite → POST /api/donate 404 dù MetaMask đã thành công */
+export const BACKEND_URL =
+  import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';

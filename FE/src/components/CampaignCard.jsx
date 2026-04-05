@@ -5,6 +5,7 @@ import DonationHistory from './DonationHistory';
 
 const CampaignCard = ({ campaign, isAdmin, onWithdraw }) => {
   const [showDonate, setShowDonate] = useState(false);
+  const [donationRefresh, setDonationRefresh] = useState(0);
   const goalEth = Number(formatEther(campaign.goal));
   const donatedEth = Number(formatEther(campaign.totalDonated));
   const percent = (donatedEth / goalEth) * 100;
@@ -42,8 +43,9 @@ const CampaignCard = ({ campaign, isAdmin, onWithdraw }) => {
         isOpen={showDonate}
         onClose={() => setShowDonate(false)}
         campaignId={campaign.id}
+        onSuccess={() => setDonationRefresh((k) => k + 1)}
       />
-      <DonationHistory campaignId={campaign.id} />
+      <DonationHistory campaignId={campaign.id} refreshKey={donationRefresh} />
     </div>
   );
 };

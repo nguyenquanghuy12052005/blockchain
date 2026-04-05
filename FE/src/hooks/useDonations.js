@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getDonationsByCampaign, getAllDonations } from '../services/api';
 
-export function useDonationsByCampaign(campaignId) {
+export function useDonationsByCampaign(campaignId, refreshKey = 0) {
   const [donations, setDonations] = useState([]);
   const [loading, setLoading] = useState(false);
   useEffect(() => {
@@ -11,7 +11,7 @@ export function useDonationsByCampaign(campaignId) {
       .then(setDonations)
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [campaignId]);
+  }, [campaignId, refreshKey]);
   return { donations, loading };
 }
 

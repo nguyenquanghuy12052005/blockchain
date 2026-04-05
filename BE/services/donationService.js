@@ -1,29 +1,45 @@
 const Donation = require('../models/Donation');
-const { ethers } = require('ethers');
+const ethers = require('ethers');
 
 const createOrUpdateDonation = async (donationData) => {
-  const { transactionHash, campaignId, donor, amount, timestamp, message } = donationData;
+  const {
+    transactionHash: rawHash,
+    campaignId,
+    donor,
+    amount,
+    timestamp,
+    message,
+    displayName,
+  } = donationData;
+  const transactionHash = String(rawHash).trim().toLowerCase();
+  const cid = Number(campaignId);
+  const ts = timestamp != null ? Number(timestamp) : Math.floor(Date.now() / 1000);
+
   let donation = await Donation.findOne({ transactionHash });
   if (donation) {
-    donation.message = message || donation.message;
+    donation.message = message != null ? message : donation.message;
     if (donor) donation.donor = donor;
+    if (displayName != null) donation.displayName = displayName;
     if (amount) {
-      donation.amount = amount;
-      donation.amountEth = parseFloat(ethers.utils.formatEther(amount));
+      donation.amount = typeof amount === 'string' ? amount : amount.toString();
+      donation.amountEth = parseFloat(ethers.utils.formatEther(donation.amount));
     }
-    if (timestamp) donation.timestamp = timestamp;
-    if (campaignId !== undefined) donation.campaignId = campaignId;
+    if (timestamp != null) donation.timestamp = ts;
+    if (campaignId !== undefined && !Number.isNaN(cid)) donation.campaignId = cid;
     await donation.save();
     return donation;
   } else {
     const newDonation = new Donation({
       transactionHash,
-      campaignId,
+      campaignId: cid,
       donor: donor || '',
-      amount: amount || '0',
-      amountEth: amount ? parseFloat(ethers.utils.formatEther(amount)) : 0,
-      timestamp: timestamp || Date.now(),
+      amount: typeof amount === 'string' ? amount : (amount || '0').toString(),
+      amountEth: amount
+        ? parseFloat(ethers.utils.formatEther(typeof amount === 'string' ? amount : amount.toString()))
+        : 0,
+      timestamp: ts,
       message: message || '',
+      displayName: displayName || '',
       status: 'pending',
     });
     await newDonation.save();
@@ -32,25 +48,30 @@ const createOrUpdateDonation = async (donationData) => {
 };
 
 const confirmDonationFromEvent = async (transactionHash, campaignId, donor, amount, timestamp) => {
-  const donation = await Donation.findOne({ transactionHash });
+  const txNorm = String(transactionHash).trim().toLowerCase();
+  const cid = Number(campaignId.toString());
+  const ts = Number(timestamp.toString());
+  const amt = amount.toString();
+
+  const donation = await Donation.findOne({ transactionHash: txNorm });
   if (donation) {
     donation.status = 'confirmed';
     donation.donor = donor;
-    donation.amount = amount.toString();
-    donation.amountEth = parseFloat(ethers.utils.formatEther(amount));
-    donation.timestamp = timestamp;
-    donation.campaignId = campaignId;
+    donation.amount = amt;
+    donation.amountEth = parseFloat(ethers.utils.formatEther(amt));
+    donation.timestamp = ts;
+    donation.campaignId = cid;
     await donation.save();
     return donation;
   } else {
     // Tạo mới với status confirmed (không có message)
     const newDonation = new Donation({
-      transactionHash,
-      campaignId,
+      transactionHash: txNorm,
+      campaignId: cid,
       donor,
-      amount: amount.toString(),
-      amountEth: parseFloat(ethers.utils.formatEther(amount)),
-      timestamp,
+      amount: amt,
+      amountEth: parseFloat(ethers.utils.formatEther(amt)),
+      timestamp: ts,
       message: '',
       status: 'confirmed',
     });
@@ -60,7 +81,13 @@ const confirmDonationFromEvent = async (transactionHash, campaignId, donor, amou
 };
 
 const getDonationsByCampaign = async (campaignId) => {
-  return await Donation.find({ campaignId, status: 'confirmed' }).sort({ timestamp: -1 });
+  const id = Number(campaignId);
+  if (Number.isNaN(id)) return [];
+  // Hiển thị cả pending (FE vừa POST) và confirmed (đã bắt event on-chain)
+  return await Donation.find({
+    campaignId: id,
+    status: { $in: ['pending', 'confirmed'] },
+  }).sort({ timestamp: -1 });
 };
 
 const getAllDonations = async () => {

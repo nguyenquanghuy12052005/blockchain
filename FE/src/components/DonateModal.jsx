@@ -1,34 +1,63 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import { useDonate } from '../hooks/useContract';
-import { useAccount } from 'wagmi';
+import { useAccount, usePublicClient } from 'wagmi';
 import { sendDonationMessage } from '../services/api';
 import { parseEther } from 'viem';
 
-const DonateModal = ({ isOpen, onClose, campaignId }) => {
+const DonateModal = ({ isOpen, onClose, campaignId, onSuccess }) => {
   const [amount,      setAmount]      = useState('');
   const [displayName, setDisplayName] = useState('');
   const [message,     setMessage]     = useState('');
   const [loading,     setLoading]     = useState(false);
   const { donate }                    = useDonate();
   const { address }                   = useAccount();
+  const publicClient                  = usePublicClient();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!amount || parseFloat(amount) <= 0) return;
+    if (!address) {
+      alert('Vui lòng kết nối ví trước khi quyên góp.');
+      return;
+    }
+    if (!publicClient) {
+      alert('Chưa sẵn sàng kết nối blockchain. Thử lại sau.');
+      return;
+    }
     setLoading(true);
     try {
       const txHash = await donate(campaignId, amount);
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      await sendDonationMessage({
-        transactionHash: txHash,
-        campaignId,
-        donor:       address,
-        amount:      parseEther(amount).toString(),
-        timestamp:   Math.floor(Date.now() / 1000),
-        displayName: displayName.trim() || 'Ẩn danh',
-        message:     message.trim(),
-      });
+      const hash = typeof txHash === 'string' ? txHash : String(txHash);
+      await publicClient.waitForTransactionReceipt({ hash });
+
+      try {
+        await sendDonationMessage({
+          transactionHash: hash,
+          campaignId: Number(campaignId),
+          donor: address,
+          amount: parseEther(String(amount)).toString(),
+          timestamp: Math.floor(Date.now() / 1000),
+          displayName: displayName.trim() || 'Ẩn danh',
+          message: message.trim(),
+        });
+      } catch (apiErr) {
+        const apiMsg =
+          axios.isAxiosError(apiErr) && apiErr.response?.data?.error
+            ? apiErr.response.data.error
+            : apiErr?.message || 'Không rõ';
+        alert(
+          `Giao dịch blockchain đã thành công.\nNhưng không lưu được lời nhắn lên server: ${apiMsg}\n` +
+            'Kiểm tra backend đang chạy (port 5000) và biến VITE_BACKEND_URL.',
+        );
+        onSuccess?.();
+        onClose();
+        setAmount(''); setDisplayName(''); setMessage('');
+        return;
+      }
+
       alert('Quyên góp thành công! Cảm ơn bạn ❤️');
+      onSuccess?.();
       onClose();
       setAmount(''); setDisplayName(''); setMessage('');
     } catch (err) {

@@ -14,18 +14,25 @@ const addDonationMessage = async (req, res) => {
       displayName,  // ← tên người gửi (tùy chọn, FE gửi lên)
     } = req.body;
 
-    if (!transactionHash || campaignId === undefined || !donor || !amount || !timestamp) {
+    const ts = Number(timestamp);
+    const missing = [];
+    if (!transactionHash) missing.push('transactionHash');
+    if (campaignId === undefined || campaignId === null || campaignId === '') missing.push('campaignId');
+    if (!donor || typeof donor !== 'string') missing.push('donor');
+    if (amount === undefined || amount === null || amount === '') missing.push('amount');
+    if (!Number.isFinite(ts)) missing.push('timestamp');
+    if (missing.length) {
       return res.status(400).json({
-        error: 'Thiếu thông tin bắt buộc: transactionHash, campaignId, donor, amount, timestamp',
+        error: `Thiếu hoặc sai định dạng: ${missing.join(', ')}`,
       });
     }
 
     const donation = await donationService.createOrUpdateDonation({
-      transactionHash,
+      transactionHash: String(transactionHash).trim(),
       campaignId,
-      donor,
+      donor: String(donor).trim(),
       amount,
-      timestamp,
+      timestamp: ts,
       message,
       displayName,
     });

@@ -1,8 +1,8 @@
 import React from 'react';
 import { useDonationsByCampaign } from '../hooks/useDonations';
 
-const DonationHistory = ({ campaignId }) => {
-  const { donations, loading } = useDonationsByCampaign(campaignId);
+const DonationHistory = ({ campaignId, refreshKey = 0 }) => {
+  const { donations, loading } = useDonationsByCampaign(campaignId, refreshKey);
 
   if (loading) return (
     <div className="mt-4 text-gray-400 text-sm text-center">Đang tải lịch sử...</div>
@@ -24,6 +24,11 @@ const DonationHistory = ({ campaignId }) => {
       <ul className="space-y-2 max-h-64 overflow-y-auto pr-1">
         {donations.map((don) => (
           <li key={don._id} className="bg-gray-50 rounded-lg p-3 text-sm">
+            {don.status === 'pending' && (
+              <div className="text-[10px] uppercase tracking-wide text-amber-600 font-semibold mb-1">
+                Đang xác nhận on-chain
+              </div>
+            )}
 
             {/* Dòng 1: Tên + số tiền */}
             <div className="flex justify-between items-center">

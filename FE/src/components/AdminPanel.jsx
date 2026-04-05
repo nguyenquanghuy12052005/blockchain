@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import { useCreateCampaign, useWithdraw } from '../hooks/useContract';
+import { usePublicClient } from 'wagmi';
+import { syncCampaignFromTx } from '../services/api';
 
-const AdminPanel = ({ campaignIds }) => {
+const AdminPanel = ({ campaignIds, onCreated }) => {
   const [name, setName] = useState('');
   const [desc, setDesc] = useState('');
   const [goal, setGoal] = useState('');
@@ -9,31 +12,55 @@ const AdminPanel = ({ campaignIds }) => {
   const [recipient, setRecipient] = useState('');
   const { createCampaign } = useCreateCampaign();
   const { withdraw } = useWithdraw();
+  const publicClient = usePublicClient();
 
   const handleCreate = async (e) => {
     e.preventDefault();
     if (!name || !goal) return;
+    if (!publicClient) {
+      alert('Chưa kết nối RPC. Kiểm tra Ganache và ví.');
+      return;
+    }
     try {
-      await createCampaign(name, desc, goal);
-      alert('Tạo quỹ thành công!');
+      const txHash = await createCampaign(name, desc, goal);
+      const hash = typeof txHash === 'string' ? txHash : String(txHash);
+      await publicClient.waitForTransactionReceipt({ hash });
+      try {
+        await syncCampaignFromTx(hash);
+        alert('Tạo quỹ thành công! Đã đồng bộ lên MongoDB.');
+      } catch (syncErr) {
+        const msg =
+          axios.isAxiosError(syncErr) && syncErr.response?.data?.error
+            ? syncErr.response.data.error
+            : syncErr?.message || 'Không rõ';
+        alert(
+          `Quỹ đã tạo trên blockchain.\nLưu MongoDB thất bại: ${msg}\n` +
+            'Chạy backend (port 5000), kiểm tra Ganache và CONTRACT_ADDRESS trong .env.',
+        );
+      }
       setName('');
       setDesc('');
       setGoal('');
+      onCreated?.();
     } catch (err) {
-      alert('Tạo quỹ thất bại');
+      alert('Tạo quỹ thất bại: ' + (err.shortMessage || err.message));
     }
   };
 
   const handleWithdraw = async (e) => {
     e.preventDefault();
     if (!withdrawCampaignId || !recipient) return;
+    if (!publicClient) return;
     try {
-      await withdraw(parseInt(withdrawCampaignId), recipient);
+      const txHash = await withdraw(parseInt(withdrawCampaignId), recipient);
+      const hash = typeof txHash === 'string' ? txHash : String(txHash);
+      await publicClient.waitForTransactionReceipt({ hash });
       alert('Rút tiền thành công!');
       setWithdrawCampaignId('');
       setRecipient('');
+      onCreated?.();
     } catch (err) {
-      alert('Rút tiền thất bại');
+      alert('Rút tiền thất bại: ' + (err.shortMessage || err.message));
     }
   };
 
