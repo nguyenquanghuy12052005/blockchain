@@ -34,7 +34,23 @@ export const syncCampaignFromTx = async (transactionHash) => {
   return data;
 };
 
-export const getMongoCampaigns = async () => {
-  const { data } = await api.get('/api/campaigns');
+// Gửi thông tin sau khi withdraw — BE tạo hoặc update record theo txHash
+// Route: POST /api/withdraw
+export const sendWithdrawalInfo = async (payload) => {
+  const { data } = await api.post('/api/withdraw', payload);
+  return data;
+};
+
+// Lấy lịch sử withdraw của 1 quỹ
+// Route: GET /api/campaigns/:campaignId/withdrawals
+export const getWithdrawalsByCampaign = async (campaignId) => {
+  const { data } = await api.get(`/api/campaigns/${campaignId}/withdrawals`);
+  return data;
+};
+
+// Lấy tất cả withdrawals
+// Route: GET /api/withdrawals
+export const getAllWithdrawals = async () => {
+  const { data } = await api.get('/api/withdrawals');
   return data;
 };
