@@ -69,6 +69,7 @@ export const contractABI = [
     inputs: [
       { internalType: "uint256",         name: "_campaignId", type: "uint256" },
       { internalType: "address payable", name: "_recipient",  type: "address" },
+      { internalType: "uint256",         name: "_amount",     type: "uint256" },
     ],
     name: "withdraw",
     outputs: [],

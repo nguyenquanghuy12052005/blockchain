@@ -74,19 +74,21 @@ contract MultiCampaignFund {
     }
 
 
-//rut tiền từ quỹ về tài khoản
-    function withdraw(uint256 _campaignId, address payable _recipient) 
+//rut tiền từ quỹ về tài khoản theo hạn mức
+    function withdraw(uint256 _campaignId, address payable _recipient, uint256 _amount) 
         external 
         onlySuperAdmin 
         campaignExists(_campaignId) 
     {
         Campaign storage campaign = campaigns[_campaignId];
-        uint256 amount = campaign.totalDonated;
-        require(amount > 0, "No funds");
-        campaign.totalDonated = 0;
-        (bool sent, ) = _recipient.call{value: amount}("");
+        require(_amount > 0, "Amount must be > 0");
+        require(campaign.totalDonated >= _amount, "Insufficient funds in campaign");
+        
+        campaign.totalDonated -= _amount;
+        (bool sent, ) = _recipient.call{value: _amount}("");
         require(sent, "Transfer failed");
-        emit Withdrawn(_campaignId, _recipient, amount);
+        
+        emit Withdrawn(_campaignId, _recipient, _amount);
     }
 
 

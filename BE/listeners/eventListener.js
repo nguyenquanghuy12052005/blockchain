@@ -1,21 +1,24 @@
 require('dotenv').config();
 const ethers = require('ethers');
+const mongoose = require('mongoose');
 const { contract } = require('../config/blockchain');
-const connectDB = require('../config/db');
+const connectDB = require('../config/db'); // Import lại connectDB
 const donationService = require('../services/donationService');
 const withdrawalService = require('../services/withdrawalService');
 const campaignService = require('../services/campaignService');
 
 function txHashFromEvent(event) {
   if (!event) return undefined;
-  // ethers v5: Log / Event có transactionHash trực tiếp
   if (event.transactionHash) return event.transactionHash;
   if (event.log && event.log.transactionHash) return event.log.transactionHash;
   return undefined;
 }
 
 async function startListener() {
-  await connectDB();
+  // Nếu chưa kết nối DB (trường hợp chạy npm run listener riêng) thì mới gọi connectDB
+  if (mongoose.connection.readyState !== 1) {
+    await connectDB();
+  }
   console.log('✅ Event listener started — đang lắng nghe blockchain...');
 
   contract.on('CampaignCreated', async (id, name, goal, owner, event) => {

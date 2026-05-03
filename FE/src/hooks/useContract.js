@@ -42,12 +42,12 @@ export function useCreateCampaign() {
 export function useWithdraw() {
   const { writeContractAsync } = useWriteContract();
 
-  const withdraw = async (campaignId, recipient) => {
+  const withdraw = async (campaignId, recipient, amountEth) => {
     const txHash = await writeContractAsync({
       address: CONTRACT_ADDRESS,
       abi: contractABI,
       functionName: 'withdraw',          // khớp contract
-      args: [BigInt(campaignId), recipient],
+      args: [BigInt(campaignId), recipient, parseEther(String(amountEth))],
     });
     return txHash;
   };

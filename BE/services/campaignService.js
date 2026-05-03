@@ -25,10 +25,9 @@ async function upsertFromChain(onChainId, createTxHash = '') {
       owner: c.owner,
       ...(createTxHash ? { createTxHash } : {}),
     },
-    { upsert: true, new: true },
+    { upsert: true, returnDocument: 'after' },
   );
 }
-
 /** Lưu / cập nhật từ event CampaignCreated (listener) */
 async function upsertFromCampaignCreatedEvent(id, name, goal, owner, txHash) {
   const onChainId = toNum(id);
@@ -42,7 +41,7 @@ async function upsertFromCampaignCreatedEvent(id, name, goal, owner, txHash) {
       createTxHash: txHash || '',
       active: true,
     },
-    { upsert: true, new: true },
+    { upsert: true, returnDocument: 'after' },
   );
   await upsertFromChain(onChainId, txHash || '');
 }

@@ -54,3 +54,14 @@ export const getAllWithdrawals = async () => {
   const { data } = await api.get('/api/withdrawals');
   return data;
 };
+
+/**
+ * Verify giao dịch kép: kiểm tra đồng thời trên Ganache (on-chain) và MongoDB.
+ * Route: GET /api/verify/:txHash
+ * Trả về: { verdict, chain: {...}, db: {...} }
+ *   verdict: 'authentic' | 'chain_only' | 'db_only' | 'chain_failed' | 'not_found' | 'pending_confirm'
+ */
+export const verifyTransaction = async (txHash) => {
+  const { data } = await api.get(`/api/verify/${encodeURIComponent(txHash)}`);
+  return data;
+};
