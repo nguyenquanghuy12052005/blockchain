@@ -22,6 +22,7 @@ const AdminPanel = ({ campaignOptions = [], onCreated }) => {
   const [goal, setGoal] = useState('');
   const [withdrawCampaignId, setWithdrawCampaignId] = useState('');
   const [recipient, setRecipient] = useState('');
+  const [withdrawAmount, setWithdrawAmount] = useState('');
   const [showWithdrawHistory, setShowWithdrawHistory] = useState(false);
   const selectedCampaign = campaignOptions.find((c) => c.id === withdrawCampaignId);
   const { createCampaign } = useCreateCampaign();
@@ -65,14 +66,14 @@ const AdminPanel = ({ campaignOptions = [], onCreated }) => {
 
   const handleWithdraw = async (e) => {
     e.preventDefault();
-    if (withdrawCampaignId === '' || !recipient) return;
+    if (withdrawCampaignId === '' || !recipient || !withdrawAmount) return;
     if (!publicClient) {
       toast.error('Chưa kết nối RPC. Kiểm tra Ganache và ví.');
       return;
     }
     setWithdrawing(true);
     try {
-      const txHash = await withdraw(parseInt(withdrawCampaignId), recipient);
+      const txHash = await withdraw(parseInt(withdrawCampaignId), recipient, withdrawAmount);
       const hash = typeof txHash === 'string' ? txHash : String(txHash);
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
 
@@ -125,6 +126,7 @@ const AdminPanel = ({ campaignOptions = [], onCreated }) => {
       toast.success('Rút tiền thành công!');
       setWithdrawCampaignId('');
       setRecipient('');
+      setWithdrawAmount('');
       onCreated?.();
     } catch (err) {
       toast.error('Rút tiền thất bại: ' + (err.shortMessage || err.message));
@@ -220,6 +222,18 @@ const AdminPanel = ({ campaignOptions = [], onCreated }) => {
                       ▼
                     </div>
                   </div>
+                </Field>
+
+                <Field label="Số tiền cần rút (ETH)" required hint="Hạn mức tối đa = số dư quỹ">
+                  <Input
+                    type="number"
+                    step="0.001"
+                    min="0.001"
+                    placeholder="Ví dụ: 0.5"
+                    value={withdrawAmount}
+                    onChange={(e) => setWithdrawAmount(e.target.value)}
+                    required
+                  />
                 </Field>
 
                 <Field label="Địa chỉ ví nhận" required hint="Dạng 0x...">
