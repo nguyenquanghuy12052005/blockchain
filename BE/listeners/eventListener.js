@@ -3,6 +3,7 @@ const ethers = require('ethers');
 const { contract } = require('../config/blockchain');
 const connectDB = require('../config/db');
 const donationService = require('../services/donationService');
+const withdrawalService = require('../services/withdrawalService');
 const campaignService = require('../services/campaignService');
 
 function txHashFromEvent(event) {
@@ -67,6 +68,43 @@ async function startListener() {
       console.log('   ✅ Đã lưu / cập nhật MongoDB');
     } catch (error) {
       console.error('   ❌ Lỗi lưu MongoDB:', error.message);
+    }
+  });
+
+  contract.on('Withdrawn', async (campaignId, recipient, amount, event) => {
+    const txHash = txHashFromEvent(event);
+
+    console.log('\n💸 Withdrawal mới!');
+    console.log(`   txHash:     ${txHash}`);
+    console.log(`   campaignId: ${campaignId.toString()}`);
+    console.log(`   recipient:  ${recipient}`);
+    console.log(`   amount:     ${ethers.utils.formatEther(amount)} ETH`);
+
+    if (!txHash) {
+      console.error('   ❌ Không đọc được transactionHash từ event');
+      return;
+    }
+
+    try {
+      await withdrawalService.confirmWithdrawalFromEvent(
+        txHash,
+        campaignId,
+        recipient,
+        amount,
+        Math.floor(Date.now() / 1000),
+      );
+      const cid =
+        typeof campaignId.toNumber === 'function'
+          ? campaignId.toNumber()
+          : Number(campaignId);
+      try {
+        await campaignService.upsertFromChain(cid);
+      } catch {
+        /* quỹ có thể chưa có trong Mongo — bỏ qua */
+      }
+      console.log('   ✅ Đã lưu / cập nhật Withdrawals MongoDB');
+    } catch (error) {
+      console.error('   ❌ Lỗi lưu Withdrawals MongoDB:', error.message);
     }
   });
 }
