@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useDonate } from '../hooks/useContract';
 import { useAccount, usePublicClient } from 'wagmi';
 import { sendDonationMessage } from '../services/api';
-import { parseEther } from 'viem';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import { Field } from '../ui/Field';
@@ -40,23 +38,11 @@ const DonateModal = ({ isOpen, onClose, campaignId, onSuccess }) => {
       try {
         await sendDonationMessage({
           transactionHash: hash,
-          campaignId: Number(campaignId),
-          donor: address,
-          amount: parseEther(String(amount)).toString(),
-          timestamp: Math.floor(Date.now() / 1000),
           displayName: displayName.trim() || 'Ẩn danh',
           message: message.trim(),
         });
       } catch (apiErr) {
-        const apiMsg =
-          axios.isAxiosError(apiErr) && apiErr.response?.data?.error
-            ? apiErr.response.data.error
-            : apiErr?.message || 'Không rõ';
-        toast.error(`Donate thành công on-chain nhưng lưu server thất bại: ${apiMsg}`);
-        onSuccess?.();
-        onClose();
-        setAmount(''); setDisplayName(''); setMessage('');
-        return;
+        console.warn('Không cập nhật được metadata donation:', apiErr);
       }
 
       toast.success('Quyên góp thành công! Cảm ơn bạn.');

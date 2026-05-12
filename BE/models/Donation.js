@@ -18,4 +18,4 @@ const DonationSchema = new mongoose.Schema({
   },
 }, { timestamps: true });
 
-module.exports = mongoose.model('Donation', DonationSchema);
+module.exports = mongoose.model('donations', DonationSchema);

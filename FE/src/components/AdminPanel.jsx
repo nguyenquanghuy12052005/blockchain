@@ -2,11 +2,8 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useCreateCampaign, useWithdraw } from '../hooks/useContract';
 import { usePublicClient } from 'wagmi';
-import { sendWithdrawalInfo, syncCampaignFromTx } from '../services/api';
+import { syncCampaignFromTx } from '../services/api';
 import WithdrawalHistory from './WithdrawalHistory';
-import { decodeEventLog } from 'viem';
-import { contractABI } from '../contractABI';
-import { CONTRACT_ADDRESS } from '../config/constants';
 import Card, { CardBody, CardHeader } from '../ui/Card';
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
@@ -21,7 +18,7 @@ const AdminPanel = ({ campaignOptions = [], onCreated }) => {
   const [desc, setDesc] = useState('');
   const [goal, setGoal] = useState('');
   const [withdrawCampaignId, setWithdrawCampaignId] = useState('');
-  const [recipient, setRecipient] = useState('');
+  const recipient = import.meta.env.VITE_ADMIN_ADDRESS;
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [showWithdrawHistory, setShowWithdrawHistory] = useState(false);
   const selectedCampaign = campaignOptions.find((c) => c.id === withdrawCampaignId);
@@ -75,57 +72,11 @@ const AdminPanel = ({ campaignOptions = [], onCreated }) => {
     try {
       const txHash = await withdraw(parseInt(withdrawCampaignId), recipient, withdrawAmount);
       const hash = typeof txHash === 'string' ? txHash : String(txHash);
-      const receipt = await publicClient.waitForTransactionReceipt({ hash });
-
-      // Lưu withdrawal vào MongoDB (để lịch sử rút tiền đọc được ngay cả khi listener không chạy)
-      try {
-        const contractLogs = (receipt.logs || []).filter((l) => {
-          if (!l?.topics?.length) return false;
-          if (!l.address) return false;
-          return String(l.address).toLowerCase() === String(CONTRACT_ADDRESS).toLowerCase();
-        });
-
-        let decodedWithdrawn = null;
-        for (const l of contractLogs) {
-          try {
-            const decoded = decodeEventLog({
-              abi: contractABI,
-              data: l.data,
-              topics: l.topics,
-            });
-            if (decoded?.eventName === 'Withdrawn') {
-              decodedWithdrawn = decoded;
-              break;
-            }
-          } catch {
-            // log không khớp ABI/event => bỏ qua
-          }
-        }
-
-        if (decodedWithdrawn) {
-          const block = receipt.blockHash
-            ? await publicClient.getBlock({ blockHash: receipt.blockHash })
-            : null;
-          const ts = block?.timestamp != null ? Number(block.timestamp) : Math.floor(Date.now() / 1000);
-
-          await sendWithdrawalInfo({
-            transactionHash: hash,
-            campaignId: Number(decodedWithdrawn.args.campaignId),
-            withdrawer: String(decodedWithdrawn.args.recipient),
-            amount: decodedWithdrawn.args.amount.toString(), // wei string
-            timestamp: ts,
-            message: '',
-            displayName: '',
-          });
-        }
-      } catch (dbErr) {
-        console.warn('Không lưu được withdrawal vào MongoDB:', dbErr);
-        // Không chặn UX: vẫn coi rút tiền thành công trên chain
-      }
+      await publicClient.waitForTransactionReceipt({ hash });
 
       toast.success('Rút tiền thành công!');
       setWithdrawCampaignId('');
-      setRecipient('');
+      // setRecipient('');
       setWithdrawAmount('');
       onCreated?.();
     } catch (err) {
@@ -236,7 +187,7 @@ const AdminPanel = ({ campaignOptions = [], onCreated }) => {
                   />
                 </Field>
 
-                <Field label="Địa chỉ ví nhận" required hint="Dạng 0x...">
+                {/* <Field label="Địa chỉ ví nhận" required hint="Dạng 0x...">
                   <Input
                     type="text"
                     placeholder="0x..."
@@ -244,7 +195,7 @@ const AdminPanel = ({ campaignOptions = [], onCreated }) => {
                     onChange={(e) => setRecipient(e.target.value)}
                     required
                   />
-                </Field>
+                </Field> */}
 
                 <div className="flex flex-wrap gap-2">
                   <Button type="submit" variant="danger" loading={withdrawing}>

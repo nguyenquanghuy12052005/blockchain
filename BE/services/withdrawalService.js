@@ -52,32 +52,24 @@ const confirmWithdrawalFromEvent = async (transactionHash, campaignId, withdrawe
   const cid = Number(campaignId.toString());
   const ts = Number(timestamp.toString());
   const amt = amount.toString();
-
-  const withdrawal = await Withdrawal.findOne({ transactionHash: txNorm });
-  if (withdrawal) {
-    withdrawal.status = 'confirmed';
-    withdrawal.withdrawer = withdrawer;
-    withdrawal.amount = amt;
-    withdrawal.amountEth = parseFloat(ethers.utils.formatEther(amt));
-    withdrawal.timestamp = ts;
-    withdrawal.campaignId = cid;
-    await withdrawal.save();
-    return withdrawal;
-  } else {
-    // Tạo mới với status confirmed
-    const newWithdrawal = new Withdrawal({
-      transactionHash: txNorm,
-      campaignId: cid,
-      withdrawer,
-      amount: amt,
-      amountEth: parseFloat(ethers.utils.formatEther(amt)),
-      timestamp: ts,
-      message: '',
-      status: 'confirmed',
-    });
-    await newWithdrawal.save();
-    return newWithdrawal;
-  }
+  return Withdrawal.findOneAndUpdate(
+    { transactionHash: txNorm },
+    {
+      $set: {
+        status: 'confirmed',
+        withdrawer,
+        amount: amt,
+        amountEth: parseFloat(ethers.utils.formatEther(amt)),
+        timestamp: ts,
+        campaignId: cid,
+      },
+      $setOnInsert: {
+        message: '',
+        displayName: '',
+      },
+    },
+    { upsert: true, new: true },
+  );
 };
 
 const getWithdrawalsByCampaign = async (campaignId) => {
@@ -85,7 +77,7 @@ const getWithdrawalsByCampaign = async (campaignId) => {
   if (Number.isNaN(id)) return [];
   return await Withdrawal.find({
     campaignId: id,
-    status: { $in: ['pending', 'confirmed'] },
+    status: 'confirmed',
   }).sort({ timestamp: -1 });
 };
 

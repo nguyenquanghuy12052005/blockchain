@@ -5,63 +5,94 @@ const api = axios.create({
   baseURL: BACKEND_URL || 'http://localhost:5000',
 });
 
-// Gửi lời nhắn sau khi donate — BE tạo hoặc update record theo txHash
-// Route: POST /api/donate
+// POST /donate
 export const sendDonationMessage = async (payload) => {
-  const { data } = await api.post('/api/donate', payload);
+  console.log('[FE] sendDonationMessage payload:', payload);
+
+  const { data } = await api.post('/donate', payload);
+
+  console.log('[FE] sendDonationMessage response:', data);
+
   return data;
 };
 
-// Lấy lịch sử donate của 1 quỹ
-// Route: GET /api/campaigns/:campaignId/donations
+// GET /campaigns/:campaignId/donations
 export const getDonationsByCampaign = async (campaignId) => {
-  const { data } = await api.get(`/api/campaigns/${campaignId}/donations`);
+  console.log('[FE] getDonationsByCampaign campaignId:', campaignId);
+
+  const { data } = await api.get(`/campaigns/${campaignId}/donations`);
+
+  console.log('[FE] getDonationsByCampaign response:', data);
+
   return data;
 };
 
-// Lấy tất cả donations
-// Route: GET /api/donations
+// GET /donations
 export const getAllDonations = async () => {
-  const { data } = await api.get('/api/donations');
+  console.log('[FE] getAllDonations called');
+
+  const { data } = await api.get('/donations');
+
+  console.log('[FE] getAllDonations response:', data);
+
   return data;
 };
 
-/** Đồng bộ quỹ vừa tạo vào MongoDB (đọc receipt + getCampaign) */
+// POST /campaigns/sync-tx
 export const syncCampaignFromTx = async (transactionHash) => {
-  const { data } = await api.post('/api/campaigns/sync-tx', {
+  console.log('[FE] syncCampaignFromTx txHash:', transactionHash);
+
+  const { data } = await api.post('/campaigns/sync-tx', {
     transactionHash: String(transactionHash),
   });
+
+  console.log('[FE] syncCampaignFromTx response:', data);
+
   return data;
 };
 
-// Gửi thông tin sau khi withdraw — BE tạo hoặc update record theo txHash
-// Route: POST /api/withdraw
+// POST /withdraw
 export const sendWithdrawalInfo = async (payload) => {
-  const { data } = await api.post('/api/withdraw', payload);
+  console.log('[FE] sendWithdrawalInfo payload:', payload);
+
+  const { data } = await api.post('/withdraw', payload);
+
+  console.log('[FE] sendWithdrawalInfo response:', data);
+
   return data;
 };
 
-// Lấy lịch sử withdraw của 1 quỹ
-// Route: GET /api/campaigns/:campaignId/withdrawals
+// GET /campaigns/:campaignId/withdrawals
 export const getWithdrawalsByCampaign = async (campaignId) => {
-  const { data } = await api.get(`/api/campaigns/${campaignId}/withdrawals`);
+  console.log('[FE] getWithdrawalsByCampaign campaignId:', campaignId);
+
+  const { data } = await api.get(`/campaigns/${campaignId}/withdrawals`);
+
+  console.log('[FE] getWithdrawalsByCampaign response:', data);
+
   return data;
 };
 
-// Lấy tất cả withdrawals
-// Route: GET /api/withdrawals
+// GET /withdrawals
 export const getAllWithdrawals = async () => {
-  const { data } = await api.get('/api/withdrawals');
+  console.log('[FE] getAllWithdrawals called');
+
+  const { data } = await api.get('/withdrawals');
+
+  console.log('[FE] getAllWithdrawals response:', data);
+
   return data;
 };
 
-/**
- * Verify giao dịch kép: kiểm tra đồng thời trên Ganache (on-chain) và MongoDB.
- * Route: GET /api/verify/:txHash
- * Trả về: { verdict, chain: {...}, db: {...} }
- *   verdict: 'authentic' | 'chain_only' | 'db_only' | 'chain_failed' | 'not_found' | 'pending_confirm'
- */
+// GET /verify/:txHash
 export const verifyTransaction = async (txHash) => {
-  const { data } = await api.get(`/api/verify/${encodeURIComponent(txHash)}`);
+  console.log('[FE] verifyTransaction txHash:', txHash);
+
+  const { data } = await api.get(
+    `/verify/${encodeURIComponent(txHash)}`
+  );
+
+  console.log('[FE] verifyTransaction response:', data);
+
   return data;
-};
+};

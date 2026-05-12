@@ -18,6 +18,7 @@ async function upsertFromChain(onChainId, createTxHash = '') {
     {
       onChainId: id,
       name: c.name,
+      category: c.category || '',
       description: c.description || '',
       goalWei: c.goal.toString(),
       totalDonatedWei: c.totalDonated.toString(),

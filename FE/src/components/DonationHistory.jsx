@@ -57,8 +57,8 @@ const VERDICT_CONFIG = {
   },
   unknown: {
     label: '❓ Không xác định',
-    desc: 'Không thể xác định trạng thái giao dịch.',
-    bg: 'bg-slate-50',
+    desc: 'Thông tin giao dịch có sự sai lệch.',
+    bg: 'bg-red-50',
     border: 'border-slate-300',
     text: 'text-slate-700',
     badge: 'bg-slate-100 text-slate-600',
