@@ -88,9 +88,23 @@ async function listAll() {
   return Campaign.find().sort({ onChainId: 1 }).lean();
 }
 
+
+
+
+async function updateImageUrl(onChainId, imageUrl) {
+  if (!onChainId) throw new Error('Thiếu onChainId');
+  const campaign = await Campaign.findOneAndUpdate(
+    { onChainId },
+    { imageUrl: imageUrl || '' },
+    { new: true, runValidators: false }
+  );
+  if (!campaign) throw new Error('Không tìm thấy campaign');
+  return campaign;
+}
 module.exports = {
   upsertFromChain,
   upsertFromCampaignCreatedEvent,
   syncFromCreateTransactionHash,
   listAll,
+  updateImageUrl,
 };

@@ -1,22 +1,23 @@
 import React from 'react';
 import ConnectWallet from './ConnectWallet';
-import Card from '../ui/Card';
 
 const Layout = ({ children }) => {
   return (
-    <div className="min-h-screen">
-      <div className="sticky top-0 z-40 border-b border-white/20 bg-white/60 backdrop-blur">
-        <div className="app-container py-4">
+    <div className="min-h-screen w-full bg-gradient-to-br from-rose-50 via-white to-orange-50">
+      <div className="sticky top-0 z-40 border-b border-rose-200/50 bg-white/70 backdrop-blur-md shadow-sm">
+        <div className="px-4 py-4 sm:px-6 md:px-8">
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-blue-600 to-emerald-500 shadow-lg" />
-                <div className="min-w-0">
-                  <h1 className="truncate text-lg font-black text-slate-900 sm:text-xl">
-                    Quỹ Từ Thiện
+                <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-rose-400 to-amber-400 shadow-lg flex items-center justify-center text-white text-xl">
+                  🌸
+                </div>
+                <div>
+                  <h1 className="truncate text-lg font-black bg-gradient-to-r from-rose-500 to-amber-500 bg-clip-text text-transparent sm:text-xl">
+                    CharityChain
                   </h1>
-                  <p className="hidden text-sm text-slate-500 sm:block">
-                    Minh bạch on-chain, lưu lịch sử off-chain
+                  <p className="hidden text-sm text-rose-400 sm:block">
+                    Minh bạch on-chain · Yêu thương vô bờ
                   </p>
                 </div>
               </div>
@@ -25,12 +26,7 @@ const Layout = ({ children }) => {
           </div>
         </div>
       </div>
-
-      <main className="app-container py-8">
-        <Card className="p-0">
-          <div className="p-5 sm:p-7">{children}</div>
-        </Card>
-      </main>
+      <main className="w-full">{children}</main>
     </div>
   );
 };

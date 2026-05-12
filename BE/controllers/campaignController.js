@@ -24,4 +24,36 @@ const syncFromTx = async (req, res) => {
   }
 };
 
-module.exports = { listCampaigns, syncFromTx };
+// Cập nhật imageUrl (dùng cho trường hợp nhập URL)
+const updateCampaignImage = async (req, res) => {
+  try {
+    const { campaignId } = req.params;
+    const { imageUrl } = req.body;
+    if (!campaignId) {
+      return res.status(400).json({ error: 'Thiếu campaignId' });
+    }
+    const updated = await campaignService.updateImageUrl(parseInt(campaignId), imageUrl);
+    res.json({ success: true, campaign: updated });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: e.message || 'Cập nhật ảnh thất bại' });
+  }
+};
+
+// Upload file ảnh
+const uploadCampaignImage = async (req, res) => {
+  try {
+    const { campaignId } = req.params;
+    if (!req.file) {
+      return res.status(400).json({ error: 'Không có file ảnh' });
+    }
+    const imageUrl = `/uploads/${req.file.filename}`;
+    const updated = await campaignService.updateImageUrl(parseInt(campaignId), imageUrl);
+    res.json({ success: true, imageUrl, campaign: updated });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: e.message || 'Upload ảnh thất bại' });
+  }
+};
+
+module.exports = { listCampaigns, syncFromTx, updateCampaignImage, uploadCampaignImage };

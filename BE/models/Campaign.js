@@ -11,6 +11,7 @@ const CampaignSchema = new mongoose.Schema(
     active: { type: Boolean, default: true },
     owner: { type: String, default: '' },
     createTxHash: { type: String, default: '' },
+      imageUrl: { type: String, default: '' },
   },
   { timestamps: true },
 );

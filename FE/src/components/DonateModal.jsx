@@ -63,8 +63,8 @@ const DonateModal = ({ isOpen, onClose, campaignId, onSuccess }) => {
         if (loading) return;
         onClose?.();
       }}
-      title="Quyên góp"
-      // description={`Quỹ ${campaignId}`}
+      title="🌸 Quyên góp từ thiện"
+      description="Mỗi đóng góp đều được ghi nhận trên blockchain"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <Field label="Số tiền (ETH)" required>
@@ -75,6 +75,7 @@ const DonateModal = ({ isOpen, onClose, campaignId, onSuccess }) => {
                 type="button"
                 variant={amount === v ? 'primary' : 'secondary'}
                 onClick={() => setAmount(v)}
+                className={amount === v ? 'bg-gradient-to-r from-rose-500 to-amber-500' : 'border-rose-200 text-rose-600'}
               >
                 {v} ETH
               </Button>
@@ -88,6 +89,7 @@ const DonateModal = ({ isOpen, onClose, campaignId, onSuccess }) => {
               placeholder="Hoặc nhập số ETH khác..."
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
+              className="border-rose-200 focus:border-rose-400"
             />
           </div>
         </Field>
@@ -99,6 +101,7 @@ const DonateModal = ({ isOpen, onClose, campaignId, onSuccess }) => {
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             maxLength={50}
+            className="border-rose-200 focus:border-rose-400"
           />
         </Field>
 
@@ -109,6 +112,7 @@ const DonateModal = ({ isOpen, onClose, campaignId, onSuccess }) => {
             onChange={(e) => setMessage(e.target.value)}
             maxLength={200}
             rows={3}
+            className="border-rose-200 focus:border-rose-400"
           />
         </Field>
 
@@ -118,11 +122,12 @@ const DonateModal = ({ isOpen, onClose, campaignId, onSuccess }) => {
             variant="secondary"
             disabled={loading}
             onClick={() => onClose?.()}
+            className="border-rose-200"
           >
             Hủy
           </Button>
-          <Button type="submit" loading={loading} disabled={!amount}>
-            Xác nhận quyên góp
+          <Button type="submit" loading={loading} disabled={!amount} className="bg-gradient-to-r from-rose-500 to-amber-500 text-white">
+            💝 Xác nhận quyên góp
           </Button>
         </div>
       </form>

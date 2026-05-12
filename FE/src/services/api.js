@@ -96,3 +96,20 @@ export const verifyTransaction = async (txHash) => {
 
   return data;
 };
+
+
+// PUT /campaigns/:campaignId/image
+export const updateCampaignImage = async (campaignId, imageUrl) => {
+  console.log('[FE] updateCampaignImage', campaignId, imageUrl);
+  const { data } = await api.put(`/campaigns/${campaignId}/image`, { imageUrl });
+  return data;
+};
+
+export const uploadCampaignImage = async (campaignId, file) => {
+  const formData = new FormData();
+  formData.append('image', file);
+  const { data } = await api.post(`/campaigns/${campaignId}/upload-image`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
+  return data;
+};
